@@ -46,10 +46,6 @@ public class StatisticsCalculator {
         };
     }
 
-    public List<String> getSupportedAttributes() {
-        return new ArrayList<>(SUPPORTED_ATTRIBUTES);
-    }
-
     private List<StatisticsItem> calculateByStringField(List<Book> books, Function<Book, String> extractor) {
         if (books == null || books.isEmpty()) return Collections.emptyList();
 

@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -48,34 +49,29 @@ public class PerformanceTest {
         List<PerformanceResult> results = new ArrayList<>();
 
         for (int threadCount : THREAD_COUNTS) {
-            log.info("\n" + "-".repeat(80));
+            log.info("\n{}", "-".repeat(80));
             log.info("Testing with {} thread(s)", threadCount);
             log.info("-".repeat(80));
 
-            // Warmup
             log.info("Warming up...");
             for (int i = 0; i < WARMUP_RUNS; i++) {
                 runTest(dirPath.toFile(), attribute, threadCount, false);
             }
 
-            // Actual test runs
             log.info("Running {} test iterations...", TEST_RUNS);
             List<Long> times = new ArrayList<>();
             List<Long> parsingTimes = new ArrayList<>();
-            List<Long> statsTimes = new ArrayList<>();
             List<Long> xmlTimes = new ArrayList<>();
 
             for (int i = 0; i < TEST_RUNS; i++) {
                 var result = runTest(dirPath.toFile(), attribute, threadCount, true);
                 times.add(result.totalTimeMs());
                 parsingTimes.add(result.parsingTimeMs());
-                statsTimes.add(result.statsTimeMs());
                 xmlTimes.add(result.xmlTimeMs());
             }
 
             long avgTotal = (long) times.stream().mapToLong(Long::longValue).average().orElse(0);
             long avgParsing = (long) parsingTimes.stream().mapToLong(Long::longValue).average().orElse(0);
-            long avgStats = (long) statsTimes.stream().mapToLong(Long::longValue).average().orElse(0);
             long avgXml = (long) xmlTimes.stream().mapToLong(Long::longValue).average().orElse(0);
 
             long minTotal = times.stream().mapToLong(Long::longValue).min().orElse(0);
@@ -83,24 +79,22 @@ public class PerformanceTest {
 
             results.add(new PerformanceResult(
                     threadCount, avgTotal, minTotal, maxTotal,
-                    avgParsing, avgStats, avgXml
-            ));
+                    avgParsing, avgXml));
 
             log.info("Average total time: {} ms", avgTotal);
             log.info("Min: {} ms, Max: {} ms", minTotal, maxTotal);
-            log.info("Breakdown - Parsing: {} ms, Stats: {} ms, XML: {} ms",
-                    avgParsing, avgStats, avgXml);
+            log.info("Breakdown - Parsing: {} ms, XML: {} ms",
+                    avgParsing, avgXml);
         }
 
-        // Summary
-        log.info("\n" + "=".repeat(80));
+        log.info("\n{}", "=".repeat(80));
         log.info("SUMMARY");
         log.info("=".repeat(80));
         log.info(String.format("%-10s | %-12s | %-12s | %-12s | %-10s",
                 "Threads", "Avg Time(ms)", "Min(ms)", "Max(ms)", "Speedup"));
         log.info("-".repeat(80));
 
-        long baselineTime = results.get(0).avgTime;
+        long baselineTime = results.getFirst().avgTime;
         for (PerformanceResult result : results) {
             double speedup = (double) baselineTime / result.avgTime;
             log.info(String.format("%-10d | %-12d | %-12d | %-12d | %.2fx",
@@ -110,25 +104,24 @@ public class PerformanceTest {
 
         log.info("=".repeat(80));
         log.info("\nDetailed breakdown:");
-        log.info(String.format("%-10s | %-12s | %-12s | %-12s",
-                "Threads", "Parsing(ms)", "Stats(ms)", "XML(ms)"));
+        log.info(String.format("%-10s | %-12s | %-12s",
+                "Threads", "Parsing(ms)", "XML(ms)"));
         log.info("-".repeat(80));
         for (PerformanceResult result : results) {
-            log.info(String.format("%-10d | %-12d | %-12d | %-12d",
-                    result.threads, result.avgParsing, result.avgStats, result.avgXml));
+            log.info(String.format("%-10d | %-12d | %-12d",
+                    result.threads, result.avgParsing, result.avgXml));
         }
         log.info("=".repeat(80));
 
-        // Recommendations
         log.info("\nRECOMMENDATIONS:");
         PerformanceResult best = results.stream()
-                .min((a, b) -> Long.compare(a.avgTime, b.avgTime))
-                .orElse(results.get(0));
+                .min(Comparator.comparingLong(a -> a.avgTime))
+                .orElse(results.getFirst());
         log.info("Best performance: {} threads with {} ms average time",
                 best.threads, best.avgTime);
 
         double efficiency = (double) baselineTime / (best.threads * best.avgTime);
-        log.info("Parallel efficiency: {:.1f}%", efficiency * 100);
+        log.info("Parallel efficiency: {}%", Math.round(efficiency * 100));
     }
 
     private static StatisticsService.StatisticsResult runTest(
@@ -159,7 +152,6 @@ public class PerformanceTest {
             long minTime,
             long maxTime,
             long avgParsing,
-            long avgStats,
             long avgXml
     ) {}
 }

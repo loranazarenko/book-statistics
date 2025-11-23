@@ -60,7 +60,7 @@ public class StatisticsService {
         if (files.isEmpty()) {
             log.warn("No JSON files found in directory: {}", directory);
             File out = createOutputFile(attribute);
-            return new StatisticsResult(0, 0L, Collections.emptyList(), 0L, 0L, 0L, 0L, 0L, out);
+            return new StatisticsResult(0, 0L, Collections.emptyList(), 0L, 0L, 0L, 0L, out); // 0L,
         }
 
         ConcurrentHashMap<String, LongAdder> counts = new ConcurrentHashMap<>();
@@ -130,8 +130,6 @@ public class StatisticsService {
         }
         long parsingEnd = System.currentTimeMillis();
         long parsingTimeMs = parsingEnd - parsingStart;
-
-        long statsStart = System.currentTimeMillis();
         List<StatisticsItem> statistics = counts.entrySet().stream()
                 .map(e -> {
                     String key = e.getKey();
@@ -141,23 +139,19 @@ public class StatisticsService {
                 .sorted(Comparator.comparingLong(StatisticsItem::getCount).reversed()
                         .thenComparing(StatisticsItem::getValue, String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
-        long statsEnd = System.currentTimeMillis();
-        long statsTimeMs = statsEnd - statsStart;
-
         long xmlStart = System.currentTimeMillis();
         File out = createOutputFile(attribute);
         new XmlStatisticsWriter().writeStatistics(out.toPath(), statistics);
         long xmlEnd = System.currentTimeMillis();
         long xmlTimeMs = xmlEnd - xmlStart;
-
-        long totalTime = parsingTimeMs + statsTimeMs + xmlTimeMs;
+        long totalTime = parsingTimeMs + xmlTimeMs;
 
         if (errorCount.get() > 0) {
             log.warn("Processed with {} errors", errorCount.get());
         }
 
         return new StatisticsResult(files.size(), bookCount.get(), statistics,
-                parsingTimeMs, statsTimeMs, xmlTimeMs, totalTime, errorCount.get(), out);
+                parsingTimeMs, xmlTimeMs, totalTime, errorCount.get(), out);  //, statsTimeMs
     }
 
     private File createOutputFile(String attribute) {
@@ -215,7 +209,6 @@ public class StatisticsService {
             long bookCount,
             List<StatisticsItem> statistics,
             long parsingTimeMs,
-            long statsTimeMs,
             long xmlTimeMs,
             long totalTimeMs,
             long errorCount,

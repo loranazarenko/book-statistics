@@ -5,7 +5,7 @@
 
 if [ "$#" -lt 2 ]; then
     echo "Usage: ./run-performance-test.sh <directory> <attribute>"
-    echo "Example: ./run-performance-test.sh ./books genre"
+    echo "Example: ./run-performance-test.sh ./test-data genre"
     exit 1
 fi
 

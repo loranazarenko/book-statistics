@@ -54,6 +54,7 @@ performance-results.log
 
 # Generated statistics XML files
 statistics_by_*.xml
+*.xml
 
 # Test data directories
 test-books/

@@ -152,12 +152,12 @@ java -jar target/book-statistics.jar --dir <path> --attribute <name> [--threads 
 
 **Statistics by genre with 4 threads:**
 ```bash
-java -jar target/book-statistics.jar --dir ./books --attribute genre --threads 4
+java -jar target/book-statistics.jar --dir ./perf-data --attribute genre --threads 4
 ```
 
 **Statistics by author with 8 threads:**
 ```bash
-java -jar target/book-statistics.jar --dir ./data/books --attribute author --threads 8
+java -jar target/book-statistics.jar --dir ./perf-data --attribute author --threads 8
 ```
 
 **Interactive mode (without parameters):**
@@ -170,25 +170,19 @@ java -jar target/book-statistics.jar
 ### Step 1: Generate Test Data
 ```bash
 # Generate 10 files with 1000 books each = 10,000 books
-java -cp target/book-statistics.jar \
-  com.profitsoft.application.utils.TestDataGenerator \
-  ./test-data 10 1000
+java -cp target/book-statistics.jar com.profitsoft.application.utils.TestDataGenerator ./test-data 10 1000
 
 # For large dataset: 100 files with 5000 books = 500,000 books
-java -cp target/book-statistics.jar \
-  com.profitsoft.application.utils.TestDataGenerator \
-  ./test-data-large 100 5000
+java -cp target/book-statistics.jar com.profitsoft.application.utils.TestDataGenerator ./perf-data-large 100 5000
 ```
 
 ### Step 2: Run Performance Tests
 ```bash
 # Using Java directly
-java -cp target/book-statistics.jar \
-  com.profitsoft.application.PerformanceTest \
-  ./test-data genre
+java -cp target/book-statistics.jar com.profitsoft.application.PerformanceTest ./test-data genre
 
 # Using bash script (Linux/Mac)
-chmod +x run-performance-test.sh
+chmod +x run-performance-test.sh 
 ./run-performance-test.sh ./test-data genre
 ```
 
@@ -202,8 +196,8 @@ The performance test will:
 ## Threading Experiments Results
 
 ### Test Configuration
-- **Processor:** Intel Core i7-9700K (8 cores)
-- **Memory:** 16 GB RAM
+- **Processor:** Intel(R) Core(TM) Ultra 7 155H
+- **Memory:** 32 GB RAM
 - **Dataset:** 50 files × 2000 books = 100,000 books
 - **Attribute:** genre
 - **Runs:** 5 iterations (after 2 warmup runs)
@@ -212,51 +206,32 @@ The performance test will:
 
 | Threads | Avg Time (ms) | Min (ms) | Max (ms) | Speedup |
 |---------|---------------|----------|----------|---------|
-| 1       | 128           | 111      | 161      | 1.00x   |
-| 2       | 80            | 74       | 89       | 1.60x   |
-| 4       | 60            | 52       | 73       | 2.13x   |
-| 8       | 50            | 50       | 51       | 2.56x   |
+| 1       | 123           | 113      | 130      | 1.00x   |
+| 2       | 61            | 57       | 66       | 2.02x   |
+| 4       | 41            | 34       | 59       | 3.00x   |
+| 8       | 34            | 27       | 63       | 3.62x   |
 
 ### Detailed Time Breakdown
 
-| Threads | Parsing (ms) | Statistics (ms) | XML (ms) |
-|---------|--------------|-----------------|----------|
-| 1       | 105          | 22              | 1        |
-| 2       | 56           | 22              | 1        |
-| 4       | 39           | 20              | 1        |
-| 8       | 26           | 22              | 1        |
+| Threads | Parsing (ms) | XML (ms) |
+|---------|--------------|----------|
+| 1       | 121          | 2        |
+| 2       | 59           | 1        |
+| 4       | 40           | 1        |
+| 8       | 33           | 1        |
 
 ### Conclusions
 
 1. **Optimal Thread Count:** 4-8 threads show the best performance for this configuration.
 
 2. **Scalability:**
-    - 2 threads: ~1.6x speedup (80% efficiency)
-    - 4 threads: ~2.1x speedup (53% efficiency)
-    - 8 threads: ~2.6x speedup (32% efficiency)
+    - 2 threads: ~2.0x speedup 
+    - 4 threads: ~3.0x speedup 
+    - 8 threads: ~3.6x speedup 
 
-3. **Bottlenecks:**
+3. **Key Observations:**
     - File parsing benefits most from parallelization
-    - Statistics calculation and XML writing are independent of parsing thread count
-    - At 8 threads, efficiency decreases due to thread management overhead
-
-4. **Recommendations:**
-    - Small datasets (<10,000 books): 2-4 threads
-    - Medium datasets (10,000-100,000 books): 4 threads
-    - Large datasets (>100,000 books): 4-8 threads
-    - Don't exceed 2× the number of physical CPU cores
-
-## Optimizations
-
-### Memory Management
-- **Jackson Streaming API:** File parsing doesn't load entire JSON into memory
-- **Consumer Pattern:** Books are processed as they're parsed
-- **Concurrent Collections:** Using `ConcurrentHashMap` and `LongAdder` for thread-safe aggregation
-
-### Multithreading
-- **ExecutorService:** Thread pool for parallel file processing
-- **CountDownLatch:** Synchronization of all task completions
-- **Auto-configuration:** Maximum thread count limited to `2 × CPU cores`
+    - XML generation time is consistent (~1ms) regardless of thread count
 
 ## Running Tests
 
@@ -266,9 +241,6 @@ mvn test
 
 # Specific test
 mvn test -Dtest=StatisticsCalculatorTest
-
-# With verbose output
-mvn test -X
 ```
 
 ## Dependencies
