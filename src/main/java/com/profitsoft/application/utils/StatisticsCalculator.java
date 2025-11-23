@@ -50,8 +50,6 @@ public class StatisticsCalculator {
         return new ArrayList<>(SUPPORTED_ATTRIBUTES);
     }
 
-    // Generic string field (title/author) handling: case-insensitive grouping,
-    // preserve first-seen value but display normalized Title Case
     private List<StatisticsItem> calculateByStringField(List<Book> books, Function<Book, String> extractor) {
         if (books == null || books.isEmpty()) return Collections.emptyList();
 
@@ -109,7 +107,6 @@ public class StatisticsCalculator {
         return sortByCountWithTitleCase(counts, representative);
     }
 
-    // Sort by count desc, then by key case-insensitive
     private List<StatisticsItem> sortByCountWithTitleCase(ConcurrentHashMap<String, LongAdder> counts, ConcurrentHashMap<String, String> representative) {
         if (counts == null || counts.isEmpty()) return Collections.emptyList();
 
@@ -130,7 +127,6 @@ public class StatisticsCalculator {
                 .collect(Collectors.toList());
     }
 
-    // utility: "political fiction" -> "Political Fiction"
     private String toTitleCase(String input) {
         if (input == null || input.isBlank()) return input;
 

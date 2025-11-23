@@ -63,30 +63,23 @@ public class StatisticsService {
             return new StatisticsResult(0, 0L, Collections.emptyList(), 0L, 0L, 0L, 0L, 0L, out);
         }
 
-        // Aggregator: concurrent map of normalized key -> counter
         ConcurrentHashMap<String, LongAdder> counts = new ConcurrentHashMap<>();
-        // Representative values for display (normalized key -> original value)
         ConcurrentHashMap<String, String> representatives = new ConcurrentHashMap<>();
         AtomicLong bookCount = new AtomicLong(0);
         AtomicLong errorCount = new AtomicLong(0);
 
-        // Strategy for attribute processing
         AttributeStrategy strategy = getStrategy(attribute.toLowerCase());
 
-        // Ensure sensible thread count
         int maxThreads = Math.max(1, Math.min(threads, Runtime.getRuntime().availableProcessors() * 2));
 
-        // initialize parsingStart defensively
         long parsingStart = System.currentTimeMillis();
 
         ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
         List<Future<?>> futures = new ArrayList<>(files.size());
         try {
-            // submit parsing tasks
             for (Path f : files) {
                 futures.add(executor.submit(() -> {
                     try {
-                        // make sure parser method signature matches parseFile(Path, Consumer<Book>)
                         parser.parseFile(f, (Book book) -> {
                             try {
                                 strategy.process(book, counts, representatives);
@@ -100,45 +93,37 @@ public class StatisticsService {
                         log.error("Failed to parse file {}: {}", f, e.getMessage(), e);
                         errorCount.incrementAndGet();
                     } catch (RuntimeException e) {
-                        // protect from unexpected runtime exceptions in parser
                         log.error("Runtime error while parsing file {}: {}", f, e.getMessage(), e);
                         errorCount.incrementAndGet();
                     }
                 }));
             }
 
-            // Optionally prevent new tasks from being submitted
             executor.shutdown();
 
-            // Wait for all futures and surface execution exceptions
             for (Future<?> future : futures) {
                 try {
-                    // get without timeout — tasks already submitted; awaitTermination below is defensive
-                    future.get();
+                     future.get();
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause();
                     String causeMsg = cause != null ? cause.getMessage() : "unknown cause";
                     log.error("Execution error in task: {}", causeMsg, e);
                     errorCount.incrementAndGet();
                 } catch (InterruptedException e) {
-                    // restore interrupt status and rethrow so caller can handle it
                     Thread.currentThread().interrupt();
                     log.error("Thread interrupted while waiting for parsing tasks: {}", e.getMessage(), e);
                     throw e;
                 }
             }
 
-            // Wait for executor to terminate (defensive)
             if (!executor.awaitTermination(30, TimeUnit.MINUTES)) {
                 log.warn("Timed out waiting for parsing tasks; attempting shutdownNow");
                 executor.shutdownNow();
-                // optional: wait a short time for abrupt shutdown
                 if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
                     log.warn("Executor did not terminate after shutdownNow");
                 }
             }
         } finally {
-            // ensure shutdown in all cases
             if (!executor.isShutdown()) {
                 executor.shutdownNow();
             }
@@ -146,7 +131,6 @@ public class StatisticsService {
         long parsingEnd = System.currentTimeMillis();
         long parsingTimeMs = parsingEnd - parsingStart;
 
-        // Build sorted statistics
         long statsStart = System.currentTimeMillis();
         List<StatisticsItem> statistics = counts.entrySet().stream()
                 .map(e -> {
@@ -160,7 +144,6 @@ public class StatisticsService {
         long statsEnd = System.currentTimeMillis();
         long statsTimeMs = statsEnd - statsStart;
 
-        // Write XML
         long xmlStart = System.currentTimeMillis();
         File out = createOutputFile(attribute);
         new XmlStatisticsWriter().writeStatistics(out.toPath(), statistics);
@@ -182,7 +165,6 @@ public class StatisticsService {
         return Paths.get("").toAbsolutePath().resolve("statistics_by_" + safe + ".xml").toFile();
     }
 
-    // Strategy Pattern for attribute processing
     private interface AttributeStrategy {
         void process(Book book, ConcurrentHashMap<String, LongAdder> counts,
                      ConcurrentHashMap<String, String> representatives);
