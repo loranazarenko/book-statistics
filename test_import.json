@@ -1,0 +1,32 @@
+[
+  {
+    "title": "The Great Gatsby",
+    "yearPublished": 1925,
+    "authorId": 1,
+    "genres": ["Fiction", "Classic", "Drama"]
+  },
+  {
+    "title": "To Kill a Mockingbird",
+    "yearPublished": 1960,
+    "authorId": 2,
+    "genres": ["Fiction", "Drama", "Social"]
+  },
+  {
+    "title": "1984",
+    "yearPublished": 1949,
+    "authorId": 2,
+    "genres": ["Dystopia", "Political", "Science Fiction"]
+  },
+  {
+    "title": "Pride and Prejudice",
+    "yearPublished": 1813,
+    "authorId": 1,
+    "genres": ["Romance", "Classic", "Fiction"]
+  },
+  {
+    "title": "The Catcher in the Rye",
+    "yearPublished": 1951,
+    "authorId": 3,
+    "genres": ["Fiction", "Coming-of-age"]
+  }
+]
