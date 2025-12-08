@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- CHANGESETS: SCHEMA CREATION                                     -->
+
+    <changeSet id="1" author="assistant">
+        <comment>Create author table with constraints</comment>
+        <createTable tableName="author">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country" type="varchar(200)"/>
+            <column name="birth_year" type="integer"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint columnNames="name" tableName="author" constraintName="uc_author_name"/>
+    </changeSet>
+
+    <changeSet id="2" author="assistant">
+        <comment>Create book and book_genres tables with foreign keys</comment>
+        <createTable tableName="book">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year_published" type="integer"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="book_genres">
+            <column name="book_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="genre" type="varchar(200)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="book_genres" baseColumnNames="book_id"
+                                 referencedTableName="book" referencedColumnNames="id"
+                                 constraintName="fk_bookgenres_book" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="3" author="assistant">
+        <comment>Add author_id column and foreign key to book table</comment>
+        <addColumn tableName="book">
+            <column name="author_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="book" baseColumnNames="author_id"
+                                 referencedTableName="author" referencedColumnNames="id"
+                                 constraintName="fk_book_author" onDelete="RESTRICT"/>
+    </changeSet>
+
+    <changeSet id="4" author="assistant">
+        <comment>Create indexes for better query performance</comment>
+        <createIndex indexName="idx_book_author_id" tableName="book">
+            <column name="author_id"/>
+        </createIndex>
+        <createIndex indexName="idx_book_genres_book_id" tableName="book_genres">
+            <column name="book_id"/>
+        </createIndex>
+        <createIndex indexName="idx_author_name" tableName="author">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- CHANGESETS: INITIAL DATA (TEST DATA)                            -->
+
+    <changeSet id="5" author="assistant">
+        <comment>Insert test authors</comment>
+
+        <insert tableName="author">
+            <column name="id" valueNumeric="1"/>
+            <column name="name" value="Jane Austen"/>
+            <column name="country" value="United Kingdom"/>
+            <column name="birth_year" valueNumeric="1775"/>
+        </insert>
+
+        <insert tableName="author">
+            <column name="id" valueNumeric="2"/>
+            <column name="name" value="George Orwell"/>
+            <column name="country" value="United Kingdom"/>
+            <column name="birth_year" valueNumeric="1903"/>
+        </insert>
+
+        <insert tableName="author">
+            <column name="id" valueNumeric="3"/>
+            <column name="name" value="Charles Dickens"/>
+            <column name="country" value="United Kingdom"/>
+            <column name="birth_year" valueNumeric="1812"/>
+        </insert>
+
+        <insert tableName="author">
+            <column name="id" valueNumeric="4"/>
+            <column name="name" value="Victor Hugo"/>
+            <column name="country" value="France"/>
+            <column name="birth_year" valueNumeric="1802"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="6" author="assistant">
+        <comment>Insert test books (Entity 2) with genres</comment>
+
+        <!-- Books by Jane Austen (author_id = 1) -->
+        <insert tableName="book">
+            <column name="id" valueNumeric="1"/>
+            <column name="title" value="Pride and Prejudice"/>
+            <column name="year_published" valueNumeric="1813"/>
+            <column name="author_id" valueNumeric="1"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="1"/>
+            <column name="genre" value="Romance"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="1"/>
+            <column name="genre" value="Classic"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="1"/>
+            <column name="genre" value="Fiction"/>
+        </insert>
+
+        <insert tableName="book">
+            <column name="id" valueNumeric="2"/>
+            <column name="title" value="Emma"/>
+            <column name="year_published" valueNumeric="1815"/>
+            <column name="author_id" valueNumeric="1"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="2"/>
+            <column name="genre" value="Romance"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="2"/>
+            <column name="genre" value="Comedy"/>
+        </insert>
+
+        <insert tableName="book">
+            <column name="id" valueNumeric="3"/>
+            <column name="title" value="Sense and Sensibility"/>
+            <column name="year_published" valueNumeric="1811"/>
+            <column name="author_id" valueNumeric="1"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="3"/>
+            <column name="genre" value="Romance"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="3"/>
+            <column name="genre" value="Drama"/>
+        </insert>
+
+        <!-- Books by George Orwell (author_id = 2) -->
+        <insert tableName="book">
+            <column name="id" valueNumeric="4"/>
+            <column name="title" value="1984"/>
+            <column name="year_published" valueNumeric="1949"/>
+            <column name="author_id" valueNumeric="2"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="4"/>
+            <column name="genre" value="Dystopia"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="4"/>
+            <column name="genre" value="Science Fiction"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="4"/>
+            <column name="genre" value="Political"/>
+        </insert>
+
+        <insert tableName="book">
+            <column name="id" valueNumeric="5"/>
+            <column name="title" value="Animal Farm"/>
+            <column name="year_published" valueNumeric="1945"/>
+            <column name="author_id" valueNumeric="2"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="5"/>
+            <column name="genre" value="Satire"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="5"/>
+            <column name="genre" value="Allegory"/>
+        </insert>
+
+        <!-- Books by Charles Dickens (author_id = 3) -->
+        <insert tableName="book">
+            <column name="id" valueNumeric="6"/>
+            <column name="title" value="Great Expectations"/>
+            <column name="year_published" valueNumeric="1861"/>
+            <column name="author_id" valueNumeric="3"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="6"/>
+            <column name="genre" value="Fiction"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="6"/>
+            <column name="genre" value="Historical"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="6"/>
+            <column name="genre" value="Drama"/>
+        </insert>
+
+        <insert tableName="book">
+            <column name="id" valueNumeric="7"/>
+            <column name="title" value="Oliver Twist"/>
+            <column name="year_published" valueNumeric="1838"/>
+            <column name="author_id" valueNumeric="3"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="7"/>
+            <column name="genre" value="Fiction"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="7"/>
+            <column name="genre" value="Social"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="7"/>
+            <column name="genre" value="Drama"/>
+        </insert>
+
+        <!-- Books by Victor Hugo (author_id = 4) -->
+        <insert tableName="book">
+            <column name="id" valueNumeric="8"/>
+            <column name="title" value="Les Miserables"/>
+            <column name="year_published" valueNumeric="1862"/>
+            <column name="author_id" valueNumeric="4"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="8"/>
+            <column name="genre" value="Fiction"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="8"/>
+            <column name="genre" value="Historical"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="8"/>
+            <column name="genre" value="Epic"/>
+        </insert>
+
+        <insert tableName="book">
+            <column name="id" valueNumeric="9"/>
+            <column name="title" value="The Hunchback of Notre-Dame"/>
+            <column name="year_published" valueNumeric="1831"/>
+            <column name="author_id" valueNumeric="4"/>
+        </insert>
+
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="9"/>
+            <column name="genre" value="Fiction"/>
+        </insert>
+        <insert tableName="book_genres">
+            <column name="book_id" valueNumeric="9"/>
+            <column name="genre" value="Gothic"/>
+        </insert>
+    </changeSet>
+
+    <!-- CHANGESETS: SYNC SEQUENCES (PostgreSQL ONLY)                    -->
+
+    <changeSet id="7" author="assistant">
+        <preConditions onFail="MARK_RAN">
+            <dbms type="postgresql"/>
+        </preConditions>
+        <comment>Sync sequences for PostgreSQL production environment</comment>
+        <sql>
+            SELECT setval('author_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM author), false);
+            SELECT setval('book_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM book), false);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
