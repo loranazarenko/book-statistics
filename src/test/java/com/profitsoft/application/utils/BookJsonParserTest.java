@@ -1,8 +1,8 @@
-package com.profitsoft.application;
+package com.profitsoft.application.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.profitsoft.application.entities.Book;
-import com.profitsoft.application.utils.BookJsonParser;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;

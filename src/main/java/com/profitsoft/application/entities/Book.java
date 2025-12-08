@@ -2,31 +2,57 @@ package com.profitsoft.application.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import lombok.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.*;
 
 /**
  * Book entity representing a single book with its attributes.
  * Primary entity in Book-Author relationship (many-to-one).
  */
 @Getter
+@Entity
+@Table(name = "book")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder(toBuilder = true)
+@EqualsAndHashCode(exclude = "id")
+@ToString(exclude = "author")
 public class Book {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Setter
     @JsonProperty("title")
+    @Column(nullable = false, length = 500)
+    @NotBlank(message = "Title cannot be blank")
     private String title;
 
     @JsonProperty("author")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "author_id", nullable = false)
     private Author author;
 
     @JsonProperty("year_published")
+    @Column(name = "year_published")
+    @Min(value = 1, message = "Year published must be at least 1")
+    @Max(2025)
     private Integer yearPublished;
 
     @JsonProperty("genre")
+    @ElementCollection
+    @Builder.Default
+    @CollectionTable(name = "book_genres",
+            joinColumns = @JoinColumn(name = "book_id"))
+    @Column(name = "genre", length = 500)
     private List<String> genres = new ArrayList<>();
 
     @JsonSetter("author")
@@ -42,7 +68,6 @@ public class Book {
         } else if (value instanceof Author a) {
             this.author = a;
         } else if (value instanceof Map<?, ?> map) {
-            // Handle Jackson passing Map for JSON object
             Object nameObj = map.get("name");
             String name = (nameObj != null) ? nameObj.toString().trim() : "";
             if (name.isEmpty()) {
@@ -54,7 +79,8 @@ public class Book {
             if (byObj != null) {
                 try {
                     birthYear = Integer.valueOf(byObj.toString().trim());
-                } catch (NumberFormatException ignored) {
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid birth_year format", e);
                 }
             }
             this.author = new Author(name, country, birthYear);
@@ -75,21 +101,24 @@ public class Book {
         this.yearPublished = year;
     }
 
+    @JsonSetter("yearPublished")
+    public void setYearPublishedCamelCase(Integer year) {
+        setYearPublished(year);
+    }
+
     @JsonSetter("genre")
-    public void setGenre(Object value) {
+    public void setGenres(Object value) {
         this.genres = parseGenres(value);
     }
 
     private List<String> parseGenres(Object value) {
         if (value == null) return new ArrayList<>();
-
         if (value instanceof String s) {
-            return Arrays.stream(s.split("\\s*([,;/])\\s*"))
+            return Arrays.stream(s.split("\\s*[,;/]\\s*"))
                     .map(String::trim)
                     .filter(x -> !x.isEmpty())
                     .collect(Collectors.toList());
         }
-
         if (value instanceof Collection<?> collection) {
             return collection.stream()
                     .filter(Objects::nonNull)
@@ -98,7 +127,6 @@ public class Book {
                     .filter(x -> !x.isEmpty())
                     .collect(Collectors.toList());
         }
-
         return List.of(value.toString().trim());
     }
 

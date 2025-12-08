@@ -1,10 +1,10 @@
-package com.profitsoft.application;
+package com.profitsoft.application.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import com.profitsoft.application.entities.StatisticsItem;
 import com.profitsoft.application.service.StatisticsService;
-import com.profitsoft.application.utils.BookJsonParser;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
