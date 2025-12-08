@@ -1,5 +1,0 @@
-[
-  { "title": "Pride and Prejudice", "yearPublished": 1813, "genre": "Romance", "description": "Classic", "authorId": 1 },
-  { "title": "1984", "yearPublished": 1949, "genre": "Dystopia", "description": "Classic", "authorId": 2 },
-  { "title": "Unknown Author Book", "yearPublished": 2020, "genre": "Fiction", "description": "No author exists", "authorId": 999 }
-]
