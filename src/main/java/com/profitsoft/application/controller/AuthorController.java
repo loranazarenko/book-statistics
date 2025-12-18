@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
+@CrossOrigin(origins = "http://localhost:3050")
 @RestController
 @RequestMapping("/api/author")
 @RequiredArgsConstructor
