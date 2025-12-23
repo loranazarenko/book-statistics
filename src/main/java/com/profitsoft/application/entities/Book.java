@@ -59,14 +59,14 @@ public class Book {
     public void setAuthor(Object value) {
         if (value == null) {
             throw new IllegalArgumentException("Author cannot be null");
-        } else if (value instanceof String s) {
-            s = s.trim();
-            if (s.isEmpty()) {
+        } else if (value instanceof String str) {
+            str = str.trim();
+            if (str.isEmpty()) {
                 throw new IllegalArgumentException("Author name cannot be empty");
             }
-            this.author = new Author(s);
-        } else if (value instanceof Author a) {
-            this.author = a;
+            this.author = new Author(str);
+        } else if (value instanceof Author author_res) {
+            this.author = author_res;
         } else if (value instanceof Map<?, ?> map) {
             Object nameObj = map.get("name");
             String name = (nameObj != null) ? nameObj.toString().trim() : "";

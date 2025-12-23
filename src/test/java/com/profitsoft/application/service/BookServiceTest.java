@@ -7,14 +7,11 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.profitsoft.application.dto.BookCreateDto;
-import com.profitsoft.application.dto.BookDto;
-import com.profitsoft.application.dto.BookImportResultDto;
-import com.profitsoft.application.dto.BookListRequest;
+import com.profitsoft.application.dto.*;
 import com.profitsoft.application.entities.Author;
 import com.profitsoft.application.entities.Book;
 import com.profitsoft.application.exceptions.ResourceNotFoundException;
-import com.profitsoft.application.dto.BookPojo;
+import com.profitsoft.application.mapper.BookMapper;
 import com.profitsoft.application.repository.BookRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,6 +35,9 @@ public class BookServiceTest {
 
     @Mock
     private BookRepository bookRepo;
+
+    @Mock
+    private BookMapper bookMapper;
 
     @Mock
     private AuthorService authorService;
@@ -74,6 +74,48 @@ public class BookServiceTest {
         testCreateDto.setAuthorId(1L);
         testCreateDto.setYearPublished(2020);
         testCreateDto.setGenres(List.of("Fiction"));
+    }
+
+    @BeforeEach
+    void setup() {
+        lenient().when(bookMapper.toDto(any(Book.class)))
+                .thenAnswer(invocation -> {
+                    Book book = invocation.getArgument(0);
+                    if (book == null) return null;
+
+                    BookDto dto = new BookDto();
+                    dto.setId(book.getId());
+                    dto.setTitle(book.getTitle());
+                    dto.setYearPublished(book.getYearPublished());
+                    dto.setGenres(book.getGenres());
+
+                    // Map author
+                    if (book.getAuthor() != null) {
+                        AuthorDto authorDto = new AuthorDto();
+                        authorDto.setId(book.getAuthor().getId());
+                        authorDto.setName(book.getAuthor().getName());
+                        authorDto.setCountry(book.getAuthor().getCountry());
+                        authorDto.setBirthYear(book.getAuthor().getBirthYear());
+                        dto.setAuthor(authorDto);
+                    }
+
+                    return dto;
+                });
+
+        lenient().when(bookMapper.toListItemDto(any(Book.class)))
+                .thenAnswer(invocation -> {
+                    Book book = invocation.getArgument(0);
+                    if (book == null) return null;
+
+                    BookListItemDto dto = new BookListItemDto();
+                    dto.setId(book.getId());
+                    dto.setTitle(book.getTitle());
+                    dto.setYearPublished(book.getYearPublished());
+                    if (book.getAuthor() != null) {
+                        dto.setAuthorName(book.getAuthor().getName());
+                    }
+                    return dto;
+                });
     }
 
     @Test

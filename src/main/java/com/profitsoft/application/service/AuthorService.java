@@ -2,82 +2,96 @@ package com.profitsoft.application.service;
 
 import com.profitsoft.application.dto.AuthorDto;
 import com.profitsoft.application.entities.Author;
+import com.profitsoft.application.exceptions.ResourceNotFoundException;
+import com.profitsoft.application.mapper.AuthorMapper;
 import com.profitsoft.application.repository.AuthorRepository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthorService {
-    private final AuthorRepository repo;
+
+    private final AuthorRepository authorRepository;
+    private final AuthorMapper authorMapper;
 
     public List<AuthorDto> findAll() {
-        return repo
-                .findAll().stream()
-                .map(this::toDto)
-                .collect(Collectors
-                        .toList());
+        return authorRepository.findAll()
+                .stream()
+                .map(authorMapper::toDto)
+                .toList();
+    }
+
+    public AuthorDto findById(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Author not found with id: " + id));
+        return authorMapper.toDto(author);
+    }
+
+    public Author findEntityById(Long id) {
+        return authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Author not found with id: " + id));
+    }
+
+    public Optional<Author> findByName(String name) {
+        return authorRepository.findByNameIgnoreCase(name);
     }
 
     @Transactional
-    public AuthorDto create(AuthorDto dto) {
-        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+    public AuthorDto create(AuthorDto authorDto) {
+        if (authorDto.getName() == null || authorDto.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("Author name cannot be empty");
         }
-        if (dto.getBirthYear() != null && dto.getBirthYear() > LocalDate.now().getYear()) {
+
+        if (authorDto.getBirthYear() != null
+                && authorDto.getBirthYear() > LocalDate.now().getYear()) {
             throw new IllegalArgumentException("Birth year cannot be in the future");
         }
-        if (repo.existsByNameIgnoreCase(dto.getName()))
+
+        if (authorRepository.existsByNameIgnoreCase(authorDto.getName())) {
             throw new IllegalArgumentException("Author with this name already exists");
-        Author a = Author.builder().name(dto.getName())
-                .country(dto.getCountry())
-                .birthYear(dto.getBirthYear()).build();
-        a = repo.save(a);
-        return toDto(a);
+        }
+
+        Author author = authorMapper.toEntity(authorDto);
+        Author savedAuthor = authorRepository.save(author);
+        return authorMapper.toDto(savedAuthor);
     }
 
     @Transactional
-    public AuthorDto update(Long id, AuthorDto dto) {
-        Author author = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Author not found"));
-        if (!author.getName().equalsIgnoreCase(dto.getName()) && repo.existsByNameIgnoreCase(dto.getName())) {
-            throw new IllegalArgumentException("Author already exists");
+    public AuthorDto update(Long id, AuthorDto authorDto) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Author not found with id: " + id));
+
+        if (!author.getName().equalsIgnoreCase(authorDto.getName())
+                && authorRepository.existsByNameIgnoreCase(authorDto.getName())) {
+            throw new IllegalArgumentException("Author with this name already exists");
         }
-        author.setName(dto.getName());
-        author.setCountry(dto.getCountry());
-        author.setBirthYear(dto.getBirthYear());
-        return toDto(repo.save(author));
+
+        author.setName(authorDto.getName());
+        author.setCountry(authorDto.getCountry());
+        author.setBirthYear(authorDto.getBirthYear());
+
+        Author updatedAuthor = authorRepository.save(author);
+        return authorMapper.toDto(updatedAuthor);
     }
 
     @Transactional
     public void delete(Long id) {
-        repo.deleteById(id);
-    }
-
-    public Author findEntityById(Long id) {
-        return repo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Author not found with id: " + id));
-    }
-
-    public Optional<Author> findByName(String name) {
-        return repo.findByNameIgnoreCase(name);
-    }
-
-    private AuthorDto toDto(Author a) {
-        if (a == null) {
-            return null;
+        if (!authorRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Author not found with id: " + id);
         }
-        AuthorDto d = new AuthorDto();
-        d.setId(a.getId());
-        d.setName(a.getName());
-        d.setCountry(a.getCountry());
-        d.setBirthYear(a.getBirthYear());
-        return d;
+        authorRepository.deleteById(id);
     }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,10 +26,17 @@ public class AuthorController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<AuthorDto> getById(@PathVariable Long id) {
+        log.info("Getting author with id: {}", id);
+        return ResponseEntity.ok(service.findById(id));
+    }
+
     @PostMapping
     public ResponseEntity<AuthorDto> create(@Validated @RequestBody AuthorDto dto) {
         log.info("Creating author: {}", dto.getName());
-        return ResponseEntity.ok(service.create(dto));
+        AuthorDto created = service.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")

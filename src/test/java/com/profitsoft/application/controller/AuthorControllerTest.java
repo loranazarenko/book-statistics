@@ -81,10 +81,11 @@ public class AuthorControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         AuthorDto response = parseResponse(mvcResult, AuthorDto.class);
+        assertThat(response).isNotNull();
         assertThat(response.getId()).isNotNull().isGreaterThan(0);
         assertThat(response.getName()).isEqualTo(name);
         assertThat(response.getCountry()).isEqualTo(country);
@@ -265,7 +266,7 @@ public class AuthorControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -325,7 +326,7 @@ public class AuthorControllerTest {
         mvc.perform(delete("/api/author/{id}", 99999)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNotFound());
     }
 
     private <T> T parseResponse(MvcResult mvcResult, Class<T> c) {

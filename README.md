@@ -1,261 +1,358 @@
-# Book Statistics Parser
+# Book Statistics Application
 
-Console application for parsing JSON files with books and generating statistics on various attributes using multithreaded processing.
+RESTful API and console application for managing books and authors, parsing JSON files, and generating statistics reports.
 
-## Subject Area
+This project provides a backend REST API for handling book and author data. It supports CRUD operations, bulk importing books from JSON files, pagination and filtering, and generating CSV statistics reports.  
+A legacy console application for JSON parsing and statistics generation is also included for backward compatibility.
 
-The project works with two entities in a many-to-one relationship:
+---
 
-### Primary Entity: Book
-**Attributes:**
-- `title` (String) - book title
-- `author` (Author) - book author (supports both String and Author object)
-- `year_published` (Integer) - year of publication
-- `genre` (List<String>) - list of genres (comma-separated)
+## Overview
 
-### Secondary Entity: Author
-**Attributes:**
-- `name` (String) - author's name
-- `country` (String) - country
-- `birth_year` (Integer) - year of birth
+The backend is built with **Spring Boot 3.x** and **Spring Data JPA**.
 
-**Relationship:** Book → Author (many-to-one)
+Main features:
+- CRUD operations for Authors and Books
+- Paginated, sorted, and filtered book listings
+- Bulk upload of books from JSON files
+- Flexible author formats in JSON (string or object)
+- CSV statistics report generation
+- Input validation and centralized error handling
+- Integration and controller tests using MockMvc and H2
+- Legacy multithreaded console application
 
-## Project Structure
+---
 
-```
-src/main/java/com/profitsoft/application/
-├── entities/
-│   ├── Book.java              # Primary entity
-│   ├── Author.java            # Secondary entity
-│   └── StatisticsItem.java    # Statistics element
-├── service/
-│   └── StatisticsService.java # Multithreaded file processing service
-├── utils/
-│   ├── BookJsonParser.java         # JSON parser (streaming API)
-│   ├── XmlStatisticsWriter.java    # XML generator
-│   ├── ResultPrinter.java          # Output formatter
-│   └── TestDataGenerator.java      # Test data generator
-├── Application.java                # Main entry point
-└── PerformanceTest.java            # Performance testing tool
-```
+## Domain Model
 
-## Features
+### Author
+- `id` (Long) — auto-generated identifier  
+- `name` (String) — unique author name  
+- `country` (String) — author country  
+- `birthYear` (Integer) — year of birth  
 
-- Parse multiple JSON files from a directory
-- Streaming parsing (doesn't load entire files into memory)
-- Multithreaded file processing with configurable thread pool
-- Statistics on 4 attributes: title, author, year_published, genre
-- XML output generation
-- Comma-separated genre processing
-- Results sorted by count (highest to lowest)
-- Backward compatibility: Supports both "author": "Name" (string) and "author": { ... } (object) formats.
+### Book
+- `id` (Long) — auto-generated identifier  
+- `title` (String) — book title  
+- `author` (Author) — reference to author  
+- `yearPublished` (Integer) — publication year  
+- `genres` (List<String>) — list of genres  
 
-## Input Data Examples
+Relationship: **Book → Author (many-to-one)**
 
-### Simple Format (String Author)
+---
+
+## DTO Examples
+
+### AuthorDto
 ```json
-[
-  {
-    "title": "1984",
-    "author": "George Orwell",
-    "year_published": 1949,
-    "genre": "Dystopian, Political Fiction"
-  },
-  {
-    "title": "Pride and Prejudice",
-    "author": "Jane Austen",
-    "year_published": 1813,
-    "genre": "Romance, Satire"
-  },
-  {
-    "title": "Romeo and Juliet",
-    "author": "William Shakespeare",
-    "year_published": 1597,
-    "genre": "Romance, Tragedy"
-  }
-]
+{
+  "id": 1,
+  "name": "Jane Austen",
+  "country": "England",
+  "birthYear": 1775
+}
 ```
 
-### Extended Format (Author Object)
+### BookCreateDto
 ```json
-[
-  {
-    "title": "1984",
-    "author": {
-      "name": "George Orwell",
-      "country": "UK",
-      "birth_year": 1903
-    },
-    "year_published": 1949,
-    "genre": "Dystopian, Political Fiction"
-  }
-]
+{
+  "title": "Pride and Prejudice",
+  "authorId": 1,
+  "yearPublished": 1813,
+  "genres": ["Romance", "Satire"]
+}
 ```
 
-## Output Example
-
-### File: `statistics_by_genre.xml`
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<statistics>
-  <item>
-    <value>Romance</value>
-    <count>2</count>
-  </item>
-  <item>
-    <value>Dystopian</value>
-    <count>1</count>
-  </item>
-  <item>
-    <value>Political Fiction</value>
-    <count>1</count>
-  </item>
-  <item>
-    <value>Satire</value>
-    <count>1</count>
-  </item>
-  <item>
-    <value>Tragedy</value>
-    <count>1</count>
-  </item>
-</statistics>
+### BookDto
+```json
+{
+  "id": 1,
+  "title": "Pride and Prejudice",
+  "author": {
+    "id": 1,
+    "name": "Jane Austen"
+  },
+  "yearPublished": 1813,
+  "genres": ["Romance", "Satire"]
+}
 ```
 
-## Installation and Build
+---
 
-### Requirements
-- Java 21+
-- Maven 3.8+
+## API Endpoints
 
-### Building the Project
+All endpoints are prefixed with `/api`.  
+Request and response bodies use JSON unless stated otherwise.
+
+---
+
+## Authors API
+
+### GET /api/author
+Retrieve all authors.
+
 ```bash
-mvn clean package
+curl http://localhost:8080/api/author
 ```
 
-After building, the JAR file will be located at `target/book-statistics.jar`
+Response: `200 OK` — list of `AuthorDto`
 
-## Usage
+---
 
-### Basic Usage
+### GET /api/author/{id}
+Retrieve author by ID.
+
 ```bash
-java -jar target/book-statistics.jar --dir <path> --attribute <name> [--threads <count>]
+curl http://localhost:8080/api/author/1
 ```
 
-### Parameters
-- `--dir <path>` - path to directory with JSON files (required)
-- `--attribute <name>` - attribute for statistics (required)
-    - Available: `title`, `author`, `year_published`, `genre`
-- `--threads <count>` - number of threads (optional, default: 4)
+Responses:
+- `200 OK` — `AuthorDto`
+- `404 Not Found`
 
-### Examples
+---
 
-**Statistics by genre with 4 threads:**
+### POST /api/author
+Create a new author.
+
 ```bash
-java -jar target/book-statistics.jar --dir ./perf-data --attribute genre --threads 4
+curl -X POST -H "Content-Type: application/json" \
+-d '{"name":"Jane Austen","country":"England","birthYear":1775}' \
+http://localhost:8080/api/author
 ```
 
-**Statistics by author with 8 threads:**
+Responses:
+- `201 Created`
+- `400 Bad Request` — validation error or duplicate name
+
+---
+
+### PUT /api/author/{id}
+Update an existing author.
+
 ```bash
-java -jar target/book-statistics.jar --dir ./perf-data --attribute author --threads 8
+curl -X PUT -H "Content-Type: application/json" \
+-d '{"name":"Jane Austen Updated","country":"England","birthYear":1775}' \
+http://localhost:8080/api/author/1
 ```
 
-**Interactive mode (without parameters):**
+Responses:
+- `200 OK`
+- `404 Not Found`
+
+---
+
+### DELETE /api/author/{id}
+Delete an author.  
+Deletion fails if books are associated with the author.
+
 ```bash
+curl -X DELETE http://localhost:8080/api/author/1
+```
+
+Response: `204 No Content`
+
+---
+
+## Books API
+
+### POST /api/book
+Create a new book.
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+-d '{"title":"Pride and Prejudice","authorId":1,"yearPublished":1813,"genres":["Romance","Satire"]}' \
+http://localhost:8080/api/book
+```
+
+Response: `201 Created`
+
+---
+
+### GET /api/book/{id}
+Retrieve book by ID.
+
+```bash
+curl http://localhost:8080/api/book/1
+```
+
+Responses:
+- `200 OK`
+- `404 Not Found`
+
+---
+
+### PUT /api/book/{id}
+Update an existing book.
+
+```bash
+curl -X PUT -H "Content-Type: application/json" \
+-d '{"title":"Updated Title","authorId":1,"yearPublished":1813,"genres":["Romance"]}' \
+http://localhost:8080/api/book/1
+```
+
+Response: `200 OK`
+
+---
+
+### DELETE /api/book/{id}
+Delete a book (idempotent).
+
+```bash
+curl -X DELETE http://localhost:8080/api/book/1
+```
+
+Response: `204 No Content`
+
+---
+
+### POST /api/book/_list
+Retrieve a paginated and filtered list of books.
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+-d '{"page":0,"size":10,"sortBy":"title","sortOrder":"ASC","title":"Pride"}' \
+http://localhost:8080/api/book/_list
+```
+
+Response: `200 OK` — paginated list
+
+---
+
+## File Upload and Reports
+
+### POST /api/book/upload
+Bulk import books from a JSON file.
+
+```bash
+curl -X POST -F "file=@books.json" \
+http://localhost:8080/api/book/upload
+```
+
+Supported author formats in JSON:
+
+**String**
+```json
+"author": "George Orwell"
+```
+
+**Object**
+```json
+"author": {
+  "name": "George Orwell",
+  "country": "United Kingdom",
+  "birthYear": 1903
+}
+```
+
+Response: `201 Created` with import statistics
+
+---
+
+### POST /api/book/_report
+Generate a CSV statistics report.
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+-d '{"authorId":1}' \
+http://localhost:8080/api/book/_report --output books_report.csv
+```
+
+Response: `200 OK` — CSV file attachment
+
+---
+
+## Error Handling
+
+All errors use a unified JSON structure:
+
+```json
+{
+  "status": 404,
+  "error": "RESOURCE_NOT_FOUND",
+  "message": "Author not found with id: 999",
+  "path": "/api/author/999",
+  "timestamp": "2025-12-21T12:00:00"
+}
+```
+
+Common error codes:
+- `400 BAD_REQUEST`
+- `404 NOT_FOUND`
+- `409 CONFLICT`
+- `500 INTERNAL_SERVER_ERROR`
+
+---
+
+## Running the Application
+
+### Prerequisites
+- Java 17+
+- Maven 3.6+
+
+### Local Run
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+
+Application URL:
+```
+http://localhost:8080
+```
+
+### Build Executable JAR
+```bash
+mvn package
 java -jar target/book-statistics.jar
 ```
 
-## Performance Testing
+---
 
-### Step 1: Generate Test Data
+## Testing
+
+Run all tests:
 ```bash
-# Generate 10 files with 1000 books each = 10,000 books
-java -cp target/book-statistics.jar com.profitsoft.application.utils.TestDataGenerator ./test-data 10 1000
-
-# For large dataset: 100 files with 5000 books = 500,000 books
-java -cp target/book-statistics.jar com.profitsoft.application.utils.TestDataGenerator ./perf-data-large 100 5000
-```
-
-### Step 2: Run Performance Tests
-```bash
-# Using Java directly
-java -cp target/book-statistics.jar com.profitsoft.application.PerformanceTest ./test-data genre
-
-# Using bash script (Linux/Mac)
-chmod +x run-performance-test.sh 
-./run-performance-test.sh ./test-data genre
-```
-
-The performance test will:
-- Warm up with 2 test runs
-- Execute 5 test runs for each thread count (1, 2, 4, 8)
-- Display average, min, and max execution times
-- Calculate speedup factor
-- Show detailed breakdown (parsing, statistics calculation, XML writing)
-
-## Threading Experiments Results
-
-### Test Configuration
-- **Processor:** Intel(R) Core(TM) Ultra 7 155H
-- **Memory:** 32 GB RAM
-- **Dataset:** 50 files × 2000 books = 100,000 books
-- **Attribute:** genre
-- **Runs:** 5 iterations (after 2 warmup runs)
-
-### Results Summary
-
-| Threads | Avg Time (ms) | Min (ms) | Max (ms) | Speedup |
-|---------|---------------|----------|----------|---------|
-| 1       | 123           | 113      | 130      | 1.00x   |
-| 2       | 61            | 57       | 66       | 2.02x   |
-| 4       | 41            | 34       | 59       | 3.00x   |
-| 8       | 34            | 27       | 63       | 3.62x   |
-
-### Detailed Time Breakdown
-
-| Threads | Parsing (ms) | XML (ms) |
-|---------|--------------|----------|
-| 1       | 121          | 2        |
-| 2       | 59           | 1        |
-| 4       | 40           | 1        |
-| 8       | 33           | 1        |
-
-### Conclusions
-
-1. **Optimal Thread Count:** 4-8 threads show the best performance for this configuration.
-
-2. **Scalability:**
-    - 2 threads: ~2.0x speedup 
-    - 4 threads: ~3.0x speedup 
-    - 8 threads: ~3.6x speedup 
-
-3. **Key Observations:**
-    - File parsing benefits most from parallelization
-    - XML generation time is consistent (~1ms) regardless of thread count
-
-## Running Tests
-
-```bash
-# All tests
 mvn test
-
-# Specific tests
-mvn test -Dtest=StatisticsServiceTest          # Core integration tests
-mvn test -Dtest=BookJsonParserTest             # Streaming JSON parsing
 ```
+
+Includes:
+- Service unit tests (Mockito)
+- Controller tests (MockMvc, H2)
+- Integration tests
+
+---
+
+## Legacy Console Application
+
+The legacy console version supports:
+- Parsing multiple JSON files from a directory
+- Streaming JSON parsing
+- Multithreaded processing
+- XML statistics generation
+- Backward-compatible author formats
+
+Example:
+```bash
+java -jar target/book-statistics.jar ./input-books ./output/stats.xml 4 genre
+```
+
+---
 
 ## Dependencies
 
-- **Jackson 2.15.2** - JSON parsing
-- **Lombok 1.18.38** - Reducing boilerplate code
-- **JUnit 5.10.0** - Unit testing
-- **AssertJ 3.24.1** - Fluent assertions
-- **SLF4J 2.0.7** - Logging
+- Spring Boot 3.x
+- Spring Data JPA
+- MapStruct
+- Jackson
+- Lombok
+- JUnit 5
+- Mockito
+- AssertJ
+
+---
 
 ## License
 
 MIT License
-
-## Author
-
-Project developed as part of the "Java Core Block 1" assignment

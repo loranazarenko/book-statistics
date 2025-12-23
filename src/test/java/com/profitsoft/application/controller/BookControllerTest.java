@@ -86,10 +86,11 @@ public class BookControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         BookDto response = parseResponse(mvcResult, BookDto.class);
+        assertThat(response).isNotNull();
         assertThat(response.getId()).isNotNull().isGreaterThan(0);
         assertThat(response.getTitle()).isEqualTo(title);
         assertThat(response.getYearPublished()).isEqualTo(yearPublished);
@@ -125,7 +126,7 @@ public class BookControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -142,7 +143,7 @@ public class BookControllerTest {
         MvcResult createResult = mvc.perform(post("/api/book")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         BookDto createdBook = parseResponse(createResult, BookDto.class);
@@ -156,6 +157,7 @@ public class BookControllerTest {
                 .andReturn();
 
         BookDto response = parseResponse(mvcResult, BookDto.class);
+        assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(bookId);
         assertThat(response.getTitle()).isEqualTo("Get Test Book");
         assertThat(response.getYearPublished()).isEqualTo(2021);
@@ -183,7 +185,7 @@ public class BookControllerTest {
         MvcResult createResult = mvc.perform(post("/api/book")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         BookDto createdBook = parseResponse(createResult, BookDto.class);
@@ -211,6 +213,7 @@ public class BookControllerTest {
                 .andReturn();
 
         BookDto response = parseResponse(mvcResult, BookDto.class);
+        assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(bookId);
         assertThat(response.getTitle()).isEqualTo(newTitle);
         assertThat(response.getYearPublished()).isEqualTo(newYear);
@@ -247,7 +250,7 @@ public class BookControllerTest {
         MvcResult createResult = mvc.perform(post("/api/book")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         BookDto createdBook = parseResponse(createResult, BookDto.class);
@@ -284,7 +287,7 @@ public class BookControllerTest {
             mvc.perform(post("/api/book")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBody))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
         }
 
         String body = """
@@ -340,7 +343,7 @@ public class BookControllerTest {
         mvc.perform(post("/api/book")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         mvc.perform(post("/api/book/_report")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -86,7 +86,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto authorDto = parseResponse(authorResult, AuthorDto.class);
@@ -106,7 +106,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(bookBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             BookDto bookDto = parseResponse(bookResult, BookDto.class);
@@ -131,7 +131,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -151,7 +151,7 @@ public class BookAuthorIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(bookBody)
                         )
-                        .andExpect(status().isOk());
+                        .andExpect(status().isCreated());
             }
 
             // Verify through list endpoint
@@ -192,7 +192,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -211,7 +211,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBookBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             BookDto createdBook = parseResponse(createResult, BookDto.class);
@@ -256,7 +256,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(author1Body)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author1 = parseResponse(author1Result, AuthorDto.class);
@@ -273,7 +273,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(author2Body)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author2 = parseResponse(author2Result, AuthorDto.class);
@@ -291,7 +291,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBookBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             BookDto book = parseResponse(createResult, BookDto.class);
@@ -344,7 +344,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -361,7 +361,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBookBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             BookDto book = parseResponse(createResult, BookDto.class);
@@ -392,7 +392,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -410,7 +410,7 @@ public class BookAuthorIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(createBookBody)
                         )
-                        .andExpect(status().isOk());
+                        .andExpect(status().isCreated());
             }
 
             // Delete all books BEFORE deleting author (FK constraint)
@@ -453,7 +453,7 @@ public class BookAuthorIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(authorBody)
                         )
-                        .andExpect(status().isOk());
+                        .andExpect(status().isCreated());
             }
 
             MvcResult result = mvc.perform(get("/api/author")
@@ -482,7 +482,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -502,7 +502,7 @@ public class BookAuthorIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(createBookBody)
                         )
-                        .andExpect(status().isOk());
+                        .andExpect(status().isCreated());
             }
 
             // Request first page
@@ -546,7 +546,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(author1Body)
                     )
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
 
             // Try to create with same name
             mvc.perform(post("/api/author")
@@ -572,7 +572,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -614,7 +614,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(authorBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author = parseResponse(authorResult, AuthorDto.class);
@@ -633,7 +633,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBookBody)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             BookDto book = parseResponse(createResult, BookDto.class);
@@ -685,7 +685,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(author1Body)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author1 = parseResponse(author1Result, AuthorDto.class);
@@ -703,7 +703,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(author2Body)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             AuthorDto author2 = parseResponse(author2Result, AuthorDto.class);
@@ -721,7 +721,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBook1Body)
                     )
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn();
 
             BookDto book1 = parseResponse(book1Result, BookDto.class);
@@ -740,7 +740,7 @@ public class BookAuthorIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(createBook2Body)
                     )
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
 
             // Delete book1 BEFORE deleting author1 (FK constraint)
             mvc.perform(delete("/api/book/{id}", book1Id))

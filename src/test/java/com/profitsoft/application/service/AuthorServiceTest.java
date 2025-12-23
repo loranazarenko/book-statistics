@@ -7,6 +7,8 @@ import static org.mockito.Mockito.*;
 
 import com.profitsoft.application.dto.AuthorDto;
 import com.profitsoft.application.entities.Author;
+import com.profitsoft.application.exceptions.ResourceNotFoundException;
+import com.profitsoft.application.mapper.AuthorMapper;
 import com.profitsoft.application.repository.AuthorRepository;
 
 import java.util.List;
@@ -24,6 +26,9 @@ public class AuthorServiceTest {
 
     @Mock
     private AuthorRepository authorRepository;
+
+    @Mock
+    private AuthorMapper authorMapper;
 
     @InjectMocks
     private AuthorService authorService;
@@ -47,6 +52,35 @@ public class AuthorServiceTest {
         testAuthorDto.setBirthYear(1950);
     }
 
+    @BeforeEach
+    void setupMapper() {
+        lenient().when(authorMapper.toDto(any(Author.class)))
+                .thenAnswer(invocation -> {
+                    Author author = invocation.getArgument(0);
+                    if (author == null) return null;
+
+                    AuthorDto dto = new AuthorDto();
+                    dto.setId(author.getId());
+                    dto.setName(author.getName());
+                    dto.setCountry(author.getCountry());
+                    dto.setBirthYear(author.getBirthYear());
+                    return dto;
+                });
+
+        lenient().when(authorMapper.toEntity(any(AuthorDto.class)))
+                .thenAnswer(invocation -> {
+                    AuthorDto dto = invocation.getArgument(0);
+                    if (dto == null) return null;
+
+                    return Author.builder()
+                            .id(dto.getId())
+                            .name(dto.getName())
+                            .country(dto.getCountry())
+                            .birthYear(dto.getBirthYear())
+                            .build();
+                });
+    }
+
     @Test
     void testCreateAuthor_success() {
         AuthorDto dto = new AuthorDto();
@@ -61,11 +95,12 @@ public class AuthorServiceTest {
                 .birthYear(1980)
                 .build();
 
-        when(authorRepository.save(any(Author.class))).thenReturn(savedAuthor);
         when(authorRepository.existsByNameIgnoreCase("New Author")).thenReturn(false);
+        when(authorRepository.save(any(Author.class))).thenReturn(savedAuthor);
 
         AuthorDto result = authorService.create(dto);
 
+        assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getName()).isEqualTo("New Author");
         assertThat(result.getCountry()).isEqualTo("Ukraine");
@@ -159,7 +194,7 @@ public class AuthorServiceTest {
         when(authorRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authorService.findEntityById(99L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Author not found");
     }
 
@@ -200,16 +235,15 @@ public class AuthorServiceTest {
         when(authorRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authorService.update(99L, updateDto))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Author not found");
     }
 
     @Test
     void testDeleteAuthor_success() {
+        when(authorRepository.existsById(1L)).thenReturn(true);
         doNothing().when(authorRepository).deleteById(1L);
-
         authorService.delete(1L);
-
         verify(authorRepository, times(1)).deleteById(1L);
     }
 
@@ -239,6 +273,6 @@ public class AuthorServiceTest {
 
         assertThatThrownBy(() -> authorService.update(1L, updateDto))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Author already exists");
+                .hasMessageContaining("Author with this name already exists");
     }
 }

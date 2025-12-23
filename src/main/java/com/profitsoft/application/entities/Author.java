@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +19,9 @@ import java.util.List;
         uniqueConstraints = @UniqueConstraint(columnNames = {"name"}))
 @Getter
 @Setter
-@RequiredArgsConstructor
-@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @EqualsAndHashCode(exclude = "id")
 @ToString(exclude = "id")
 public class Author {
